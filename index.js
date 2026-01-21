@@ -25,7 +25,7 @@ app.get("/", async (req, res) => {
     res.json(result.rows[0]);
 });
 
-app.post("/addtodo", async (req, res) => {
+app.post("/todos", async (req, res) => {
     const { title, notes } = req.body;
     try {
         const result = await pool.query(
@@ -39,14 +39,16 @@ app.post("/addtodo", async (req, res) => {
     }
 });
 
-app.get("/api/hello", (req, res) => {
-    res.send("Hello from Express");
+app.get("/todos", async (req, res) => {
+    try {
+        const result = await pool.query("SELECT * FROM todos");
+        res.status(201).json(result.rows);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: "讀取資料失敗" });
+    }
 });
 
-app.get("/api/todos", (req, res) => {
-    res.json(todos);
-});
-
-app.listen(3000, () => {
-    console.log("Backend running on PORT 3000");
+app.listen(process.env.PORT, () => {
+    console.log(`Backend running on PORT ${process.env.PORT}`);
 });
