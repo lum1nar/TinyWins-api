@@ -49,6 +49,25 @@ app.get("/todos", async (req, res) => {
     }
 });
 
+app.delete("/todos/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query(
+            "DELETE FROM todos WHERE id = $1 RETURNING *",
+            [id],
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: "Todo not found" });
+        }
+
+        res.json({ message: "todo deleted", todo: result.rows[0] });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: "刪除資料失敗" });
+    }
+});
+
 app.listen(process.env.PORT, () => {
     console.log(`Backend running on PORT ${process.env.PORT}`);
 });
