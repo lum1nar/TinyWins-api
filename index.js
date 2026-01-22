@@ -7,19 +7,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const todos = [
-    {
-        id: 1,
-        title: "收衣服",
-        desc: "do this",
-    },
-    {
-        id: 2,
-        title: "打掃房間",
-        desc: "do this",
-    },
-];
-
 app.get("/", async (req, res) => {
     const result = await pool.query("SELECT NOW()");
     res.json(result.rows[0]);
@@ -27,6 +14,11 @@ app.get("/", async (req, res) => {
 
 app.post("/todos", async (req, res) => {
     const { title, notes } = req.body;
+
+    if (!title || title.trim() === "") {
+        return res.status(400).json({ error: "請輸入待辦事項！" });
+    }
+
     try {
         const result = await pool.query(
             "INSERT INTO todos (title, note) VALUES ($1, $2) RETURNING *",
