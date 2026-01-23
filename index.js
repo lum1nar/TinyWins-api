@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import pool from "./db.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const app = express();
 app.use(cors());
@@ -81,6 +83,22 @@ app.patch("/todos/:id/toggle", async (req, res) => {
     } catch (err) {
         console.log(err);
         res.status(500).json({ error: "更新資料失敗" });
+    }
+});
+
+app.post("/register", async (req, res) => {
+    const { username, email, password } = req.body;
+
+    const hash = await bcrypt.hash(password, 10);
+
+    try {
+        await pool.query(
+            "INSERT INTO users (username, email, password) VALUES($1, $2, $3)",
+            [username, email, hash],
+        );
+        res.json({ message: "註冊成功" });
+    } catch (err) {
+        res.status(500).json({ error: err });
     }
 });
 
