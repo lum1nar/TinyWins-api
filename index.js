@@ -3,49 +3,73 @@ import cors from "cors";
 import "dotenv/config";
 import pool from "./db.js";
 import bcrypt from "bcrypt";
+import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 
 const app = express();
-app.use(cors());
+
+app.use(
+    cors({
+        origin: "http://localhost:5173",
+        credentials: true,
+    }),
+);
+// Allow CORS for specific origin
+
 app.use(express.json());
+// need this to read req.body
+app.use(cookieParser());
+// need cookeParser to read cookie from request
+
+const auth = (req, res, next) => {
+    const token = req.cookies.access_token;
+    if (!token) return res.sendStatus(401);
+
+    try {
+        const payload = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = payload;
+        next();
+    } catch {
+        return res.sendStatus(401);
+    }
+};
 
 app.get("/", async (req, res) => {
     const result = await pool.query("SELECT NOW()");
-    res.json(result.rows[0]);
+    return res.json(result.rows[0]);
+});
+
+app.get("/todos", auth, async (req, res) => {
+    try {
+        const result = await pool.query("SELECT * FROM todos");
+        return res.status(200).json(result.rows);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ message: "讀取資料失敗" });
+    }
 });
 
 app.post("/todos", async (req, res) => {
     const { title, notes } = req.body;
 
     if (!title || title.trim() === "") {
-        return res.status(400).json({ error: "請輸入待辦事項！" });
+        return res.status(400).json({ message: "請輸入待辦事項！" });
     }
-
     try {
         const result = await pool.query(
             "INSERT INTO todos (title, note) VALUES ($1, $2) RETURNING *",
             [title, notes],
         );
-        res.status(201).json(result.rows[0]);
+        return res.status(201).json(result.rows[0]);
     } catch (err) {
         console.log(err);
-        res.status(500).json({ error: "新增資料失敗" });
-    }
-});
-
-app.get("/todos", async (req, res) => {
-    try {
-        const result = await pool.query("SELECT * FROM todos");
-        res.status(201).json(result.rows);
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ error: "讀取資料失敗" });
+        return res.status(500).json({ message: "新增資料失敗" });
     }
 });
 
 app.delete("/todos/:id", async (req, res) => {
-    const { id } = req.params;
     try {
+        const { id } = req.params;
         const result = await pool.query(
             "DELETE FROM todos WHERE id = $1 RETURNING *",
             [id],
@@ -55,16 +79,16 @@ app.delete("/todos/:id", async (req, res) => {
             return res.status(404).json({ message: "Todo not found" });
         }
 
-        res.json({ message: "todo deleted", todo: result.rows[0] });
+        return res.json({ message: "todo deleted", todo: result.rows[0] });
     } catch (err) {
         console.log(err);
-        res.status(500).json({ error: "刪除資料失敗" });
+        return res.status(500).json({ message: "刪除資料失敗" });
     }
 });
 
 app.patch("/todos/:id/toggle", async (req, res) => {
-    const { id } = req.params;
     try {
+        const { id } = req.params;
         const result = await pool.query(
             `
             UPDATE todos
@@ -79,27 +103,67 @@ app.patch("/todos/:id/toggle", async (req, res) => {
             return res.status(404).json({ message: "Todo not found" });
         }
 
-        res.json({ message: "todo patched", todo: result.rows[0] });
+        return res.json({ message: "todo patched", todo: result.rows[0] });
     } catch (err) {
         console.log(err);
-        res.status(500).json({ error: "更新資料失敗" });
+        return res.status(500).json({ message: "更新資料失敗" });
     }
 });
 
 app.post("/register", async (req, res) => {
-    const { username, email, password } = req.body;
-
-    const hash = await bcrypt.hash(password, 10);
-
     try {
+        const { username, email, password } = req.body;
+
+        if (!email || !username || !password) {
+            return res.status(400).json({ message: "Missing fields" });
+        }
+
+        const hash = await bcrypt.hash(password, 10);
+
         await pool.query(
             "INSERT INTO users (username, email, password) VALUES($1, $2, $3)",
             [username, email, hash],
         );
-        res.json({ message: "註冊成功" });
+        return res.json({ message: "註冊成功" });
     } catch (err) {
-        res.status(500).json({ error: err });
+        return res.status(500).json({ message: err.message });
     }
+});
+
+app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [
+        email,
+    ]);
+
+    const user = result.rows[0];
+    if (!user) return res.status(401).json({ message: "帳號不存在" });
+
+    console.log(email, password);
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) return res.status(401).json({ message: "密碼錯誤" });
+
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+        expiresIn: "7d",
+    });
+
+    // 這邊有個很大的問題，如果是自己電腦上跑兩個 port 那會永遠拿不到 cookie, 折衷的做法有把前端或後端 build 成一體，或是自簽 HTTPS
+    // 但是都設定起來很麻煩，找到比較好的方式是用 POSTMAN 確認 cookie 有效，瀏覽器可以先手動設定 cookie
+
+    // 解決方案：後來發現瀏覽器對於會自動把 localhost 的 https 驗證排除，所以按照下方設定就可以了...
+    res.cookie("access_token", token, {
+        httpOnly: true, // JS 讀不到
+        secure: true, // HTTPS 才傳 本地測試時 localhost 是不會被阻擋
+        sameSite: "none", // 防 CSRF，lax 允許 GET 時傳送 credentials 但是 POST 不允許，因此對於 login 我們需要設為 none
+    });
+    return res.json({ token });
+});
+
+app.get("/profile", auth, (req, res) => {
+    return res.json({
+        message: "你已登入",
+        user: req.user,
+    });
 });
 
 app.listen(process.env.PORT, () => {
