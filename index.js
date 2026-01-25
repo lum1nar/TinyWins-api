@@ -9,7 +9,7 @@ import jwt from "jsonwebtoken";
 const app = express();
 app.use(
     cors({
-        origin: "http://localhost:5173",
+        origin: "*",
         credentials: true,
     }),
 );
@@ -130,6 +130,7 @@ app.post("/register", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
+    console.log("Login route hit");
     const { email, password } = req.body;
     const result = await pool.query("SELECT * FROM users WHERE email = $1", [
         email,
