@@ -33,6 +33,8 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
+app.get("/", (req, res) => res.send("Server alive"));
+
 app.get("/todos", authMiddleware, async (req, res) => {
     try {
         const user_id = req.user.id;
