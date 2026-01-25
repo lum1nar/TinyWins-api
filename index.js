@@ -7,7 +7,6 @@ import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 
 const app = express();
-
 app.use(
     cors({
         origin: "http://localhost:5173",
@@ -137,7 +136,6 @@ app.post("/login", async (req, res) => {
     const user = result.rows[0];
     if (!user) return res.status(401).json({ message: "帳號不存在" });
 
-    console.log(email, password);
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) return res.status(401).json({ message: "密碼錯誤" });
 

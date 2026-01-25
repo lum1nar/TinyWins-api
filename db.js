@@ -1,4 +1,5 @@
 import pg from "pg";
+import "dotenv/config";
 const { Pool } = pg;
 
 // 解構，取出 pg object 中的 pool
