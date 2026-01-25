@@ -21,7 +21,7 @@ app.use(express.json());
 app.use(cookieParser());
 // need cookeParser to read cookie from request
 
-const auth = (req, res, next) => {
+const authMiddleware = (req, res, next) => {
     const token = req.cookies.access_token;
     if (!token) return res.sendStatus(401);
 
@@ -34,31 +34,29 @@ const auth = (req, res, next) => {
     }
 };
 
-app.get("/", async (req, res) => {
-    const result = await pool.query("SELECT NOW()");
-    return res.json(result.rows[0]);
-});
-
-app.get("/todos", auth, async (req, res) => {
+app.get("/todos", authMiddleware, async (req, res) => {
     try {
-        const result = await pool.query("SELECT * FROM todos");
+        const user_id = req.user.id;
+        const result = await pool.query("SELECT * FROM todos WHERE user_id = $1", [
+            user_id,
+        ]);
         return res.status(200).json(result.rows);
     } catch (err) {
         console.log(err);
         return res.status(500).json({ message: "讀取資料失敗" });
     }
 });
-
-app.post("/todos", async (req, res) => {
+app.post("/todos", authMiddleware, async (req, res) => {
     const { title, notes } = req.body;
+    const user_id = req.user.id;
 
     if (!title || title.trim() === "") {
         return res.status(400).json({ message: "請輸入待辦事項！" });
     }
     try {
         const result = await pool.query(
-            "INSERT INTO todos (title, note) VALUES ($1, $2) RETURNING *",
-            [title, notes],
+            "INSERT INTO todos (title, note, user_id) VALUES ($1, $2, $3) RETURNING *",
+            [title, notes, user_id],
         );
         return res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -67,7 +65,7 @@ app.post("/todos", async (req, res) => {
     }
 });
 
-app.delete("/todos/:id", async (req, res) => {
+app.delete("/todos/:id", authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
         const result = await pool.query(
@@ -86,7 +84,7 @@ app.delete("/todos/:id", async (req, res) => {
     }
 });
 
-app.patch("/todos/:id/toggle", async (req, res) => {
+app.patch("/todos/:id/toggle", authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
         const result = await pool.query(
@@ -143,7 +141,9 @@ app.post("/login", async (req, res) => {
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) return res.status(401).json({ message: "密碼錯誤" });
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+    const payload = { id: user.id, username: user.username };
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
         expiresIn: "7d",
     });
 
@@ -156,11 +156,20 @@ app.post("/login", async (req, res) => {
         secure: true, // HTTPS 才傳 本地測試時 localhost 是不會被阻擋
         sameSite: "none", // 防 CSRF，lax 允許 GET 時傳送 credentials 但是 POST 不允許，因此對於 login 我們需要設為 none
     });
-    return res.json({ token });
+    return res.json(payload);
 });
 
-app.get("/profile", auth, (req, res) => {
-    return res.json({
+app.post("/logout", authMiddleware, async (req, res) => {
+    res.clearCookie("access_token", {
+        httpOnly: true, // JS 讀不到
+        secure: true, // HTTPS 才傳 本地測試時 localhost 是不會被阻擋
+        sameSite: "none", // 防 CSRF，lax 允許 GET 時傳送 credentials 但是 POST 不允許，因此對於 login 我們需要設為 none
+    });
+    return res.status(200).json({ message: "已登出" });
+});
+
+app.get("/me", authMiddleware, (req, res) => {
+    return res.status(200).json({
         message: "你已登入",
         user: req.user,
     });
