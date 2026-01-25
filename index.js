@@ -9,7 +9,10 @@ import jwt from "jsonwebtoken";
 const app = express();
 app.use(
     cors({
-        origin: "*",
+        origin:
+            process.env.NODE_ENV === "production"
+                ? "https://todo.lum1na.top"
+                : "http://localhost:5173",
         credentials: true,
     }),
 );
