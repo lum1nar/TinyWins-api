@@ -112,6 +112,39 @@ app.patch("/todos/:id/toggle", authMiddleware, async (req, res) => {
     }
 });
 
+app.post("/subtodos", authMiddleware, async (req, res) => {
+    const { title, main_todo_id } = req.body;
+    const user_id = req.user.id;
+
+    if (!title || title.trim() === "") {
+        return res.status(400).json({ message: "請輸入待辦事項！" });
+    }
+    try {
+        const result = await pool.query(
+            "INSERT INTO subtodos (title, main_todo_id, user_id) VALUES ($1, $2, $3) RETURNING *",
+            [title, main_todo_id, user_id],
+        );
+        return res.status(201).json(result.rows[0]);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ message: "新增資料失敗" });
+    }
+});
+
+app.get("/subtodos", authMiddleware, async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const result = await pool.query(
+            "SELECT * FROM subtodos WHERE user_id = $1",
+            [user_id],
+        );
+        return res.status(200).json(result.rows);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ message: "讀取資料失敗" });
+    }
+});
+
 app.post("/register", async (req, res) => {
     try {
         const { username, email, password } = req.body;

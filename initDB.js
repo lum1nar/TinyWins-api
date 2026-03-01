@@ -22,6 +22,17 @@ async function init() {
     );
   `);
 
+    await pool.query(`
+        CREATE TABLE subtodos (
+        id SERIAL PRIMARY KEY,
+        user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        main_todo_id INT NOT NULL REFERENCES todos(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        completed BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    `);
+
     console.log("Tables created!");
     process.exit();
 }
