@@ -10,9 +10,7 @@ ARG NODE_VERSION=22.17.0
 
 FROM node:${NODE_VERSION}-alpine
 
-
 WORKDIR /usr/src/app
-
 
 COPY package*.json ./
 
@@ -31,10 +29,8 @@ RUN chmod +x /usr/src/app/docker-entrypoint.sh
 # Expose the port that the application listens on.
 EXPOSE 3000
 
-
 # Run the application as a non-root user.
 USER node
-
 
 CMD ["sh", "/usr/src/app/docker-entrypoint.sh"]
 

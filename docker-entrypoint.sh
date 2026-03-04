@@ -6,7 +6,7 @@ if [ "$NODE_ENV" = "production" ]; then
     npx prisma migrate deploy
 else
     echo "Development mode: running prisma migrate dev..."
-    npx prisma migrate dev
+    npx prisma migrate dev --name init
 fi
 
 echo "Starting server..."

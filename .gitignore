@@ -21,10 +21,6 @@ yarn.lock
 .env
 .env.*.local
 
-# Prisma
-prisma/migrations/
-prisma/dev.db
-
 # =========================
 # Docker
 # =========================
