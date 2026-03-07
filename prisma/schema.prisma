@@ -5,20 +5,47 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+    provider = "prisma-client"
+    output   = "../generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+    provider = "postgresql"
 }
 
-model users {
-  id        Int      @id @default(autoincrement())
-  username  String
-  email     String   @unique
-  address   String?
-  password  String
-  createdAt DateTime @default(now()) @map("created_at")
-  isAdmin   Boolean  @default(false)
+model User {
+    id        Int      @id @default(autoincrement())
+    username  String
+    email     String   @unique
+    password  String
+    createdAt DateTime @default(now()) @map("created_at")
+    todos     Todo[]
+
+    @@map("usr")
+}
+
+model Todo {
+    id          Int      @id @default(autoincrement())
+    title       String?
+    memo        String?
+    isCompleted Boolean  @default(false) @map("is_completed")
+    createdAt   DateTime @default(now()) @map("created_at")
+    userId      Int      @map("user_id")
+
+    user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    subTodos SubTodo[]
+
+    @@map("todo")
+}
+
+model SubTodo {
+    id          Int      @id @default(autoincrement())
+    title       String?
+    isCompleted Boolean  @default(false) @map("is_completed")
+    createdAt   DateTime @default(now()) @map("created_at")
+
+    todoId Int
+    todo   Todo @relation(fields: [todoId], references: [id], onDelete: Cascade)
+
+    @@map("subtodo")
 }

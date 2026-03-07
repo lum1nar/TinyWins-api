@@ -156,7 +156,7 @@ app.post("/register", async (req, res) => {
         const hash = await bcrypt.hash(password, 10);
 
         await pool.query(
-            "INSERT INTO users (username, email, password) VALUES($1, $2, $3)",
+            "INSERT INTO usr(username, email, password) VALUES($1, $2, $3)",
             [username, email, hash],
         );
         return res.json({ message: "註冊成功" });
