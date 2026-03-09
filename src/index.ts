@@ -5,6 +5,9 @@ import pool from "./db.js";
 import bcrypt from "bcrypt";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
+// import { PrismaClient } from "./generated/prisma/client.ts";
+//
+// const prisma = new PrismaClient();
 
 const app = express();
 app.use(
@@ -155,10 +158,15 @@ app.post("/register", async (req, res) => {
 
         const hash = await bcrypt.hash(password, 10);
 
-        await pool.query(
-            "INSERT INTO usr(username, email, password) VALUES($1, $2, $3)",
-            [username, email, hash],
-        );
+        const newUser = await prisma.user.create({
+            data: {
+                name: username,
+                password: hash,
+                email: email,
+            },
+        });
+        console.log("Created User:", newUser);
+
         return res.json({ message: "註冊成功" });
     } catch (err) {
         return res.status(500).json({ message: err.message });

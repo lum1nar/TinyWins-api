@@ -19,9 +19,15 @@ RUN chmod +x /usr/src/app/docker-entrypoint.sh
 # Run the application as a non-root user.
 # USER node
 
-# generate prisma runtime in build time
-RUN npx prisma generate
-# RUN npx prisma migrate deploy 
+# generate prisma runtime in build time 
+# Update: Only in Prod because in Prod we don't need hot reload and we won't mount WORKDIT to the container
+RUN if [ "$NODE_ENV" = "production" ]; then \
+      echo "Production build: generate Prisma client"; \
+      npx prisma generate; \
+    else \
+      echo "Development build: skip generate"; \
+    fi
+
 
 
 CMD ["bash", "/usr/src/app/docker-entrypoint.sh"]
