@@ -1,10 +1,12 @@
 import express from "express";
+import type { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import "dotenv/config";
 import pool from "./db.js";
 import bcrypt from "bcrypt";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
+import type { UserJwtPayload } from "./types/user.js";
 // import { PrismaClient } from "./generated/prisma/client.ts";
 //
 // const prisma = new PrismaClient();
@@ -26,12 +28,14 @@ app.use(express.json());
 app.use(cookieParser());
 // need cookeParser to read cookie from request
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const token = req.cookies.access_token;
     if (!token) return res.sendStatus(401);
 
     try {
-        const payload = jwt.verify(token, process.env.JWT_SECRET);
+        // This make sure JWT_SECRENT is a string rather than undefined
+        if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET not set");
+        const payload = jwt.verify(token, process.env.JWT_SECRET) as UserJwtPayload;
         req.user = payload;
         next();
     } catch {
@@ -39,7 +43,7 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
-app.get("/", (req, res) => res.send("Server alive"));
+app.get("/", (_req, res) => res.send("Server alive"));
 
 app.get("/todos", authMiddleware, async (req, res) => {
     try {
