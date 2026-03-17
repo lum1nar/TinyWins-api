@@ -1,7 +1,7 @@
 import pool from "./db.js";
 
 async function init() {
-    await pool.query(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
       username TEXT NOT NULL,
@@ -11,7 +11,7 @@ async function init() {
     );
   `);
 
-    await pool.query(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS todos (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
@@ -22,7 +22,7 @@ async function init() {
     );
   `);
 
-    await pool.query(`
+  await pool.query(`
         CREATE TABLE subtodos (
         id SERIAL PRIMARY KEY,
         user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -33,8 +33,8 @@ async function init() {
     );
     `);
 
-    console.log("Tables created!");
-    process.exit();
+  console.log("Tables created!");
+  process.exit();
 }
 
 init();

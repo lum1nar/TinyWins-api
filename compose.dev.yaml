@@ -13,8 +13,8 @@ services:
     env_file:
       - .env
     # Ensure Prisma Runs Migration When DB is Ready
-    depends_on:
-      - migrate
+    # depends_on:
+    #   - migrate
 
   # migrate:
   #   build: .
