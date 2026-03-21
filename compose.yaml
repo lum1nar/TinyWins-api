@@ -6,20 +6,12 @@ services:
     # Don't need to mount WORKDIR in Production
     expose:
       - 3000
+    volumes:
+      - .:/usr/src/app
     ports:
       - 3000:3000
     env_file:
       - .env
-    # Ensure Prisma Runs Migration When DB is Ready
-    depends_on:
-      - migrate
-
-  migrate:
-    build: .
-    command: npx prisma migrate deploy
-    depends_on:
-      db:
-        condition: service_healthy
 
   db:
     image: postgres:16

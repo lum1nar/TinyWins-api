@@ -153,31 +153,6 @@ app.get("/subtodos", authMiddleware, async (req, res) => {
   }
 });
 
-app.post("/register", async (req, res) => {
-  try {
-    const { username, email, password } = req.body;
-
-    if (!email || !username || !password) {
-      return res.status(400).json({ message: "Missing fields" });
-    }
-
-    const hash = await bcrypt.hash(password, 10);
-
-    const newUser = await prisma.user.create({
-      data: {
-        name: username,
-        password: hash,
-        email: email,
-      },
-    });
-    console.log("Created User:", newUser);
-
-    return res.json({ message: "註冊成功" });
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
-  }
-});
-
 app.post("/login", async (req, res) => {
   console.log("Login route hit");
   const { email, password } = req.body;
