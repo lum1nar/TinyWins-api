@@ -11,5 +11,5 @@ export const loginSchema = z.object({
   password: z.string(),
 });
 
-export type registerInput = z.infer<typeof registerSchema>;
-export type loginInput = z.infer<typeof registerSchema>;
+export type RegisterInput = z.infer<typeof registerSchema>;
+export type LoginInput = z.infer<typeof registerSchema>;
