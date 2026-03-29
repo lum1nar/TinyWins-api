@@ -12,6 +12,7 @@ services:
       - 3000:3000
     env_file:
       - .env
+    tty: true
 
   db:
     image: postgres:16

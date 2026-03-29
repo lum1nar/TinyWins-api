@@ -5,6 +5,6 @@ import * as authHandlers from "./authHandler.js";
 const router = Router();
 
 router.post("/login", authHandlers.login);
-router.post("/register", authHandlers.register);
+router.post("/register", authHandlers.registerUser);
 
 export default router;

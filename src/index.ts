@@ -151,37 +151,6 @@ app.get("/subtodos", authMiddleware, async (req, res) => {
   }
 });
 
-app.post("/login", async (req, res) => {
-  console.log("Login route hit");
-  const { email, password } = req.body;
-  const result = await pool.query("SELECT * FROM users WHERE email = $1", [
-    email,
-  ]);
-
-  const user = result.rows[0];
-  if (!user) return res.status(401).json({ message: "帳號不存在" });
-
-  const isValid = await bcrypt.compare(password, user.password);
-  if (!isValid) return res.status(401).json({ message: "密碼錯誤" });
-
-  const payload = { id: user.id, username: user.username };
-
-  const token = jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
-
-  // 這邊有個很大的問題，如果是自己電腦上跑兩個 port 那會永遠拿不到 cookie, 折衷的做法有把前端或後端 build 成一體，或是自簽 HTTPS
-  // 但是都設定起來很麻煩，找到比較好的方式是用 POSTMAN 確認 cookie 有效，瀏覽器可以先手動設定 cookie
-
-  // 解決方案：後來發現瀏覽器對於會自動把 localhost 的 https 驗證排除，所以按照下方設定就可以了...
-  res.cookie("access_token", token, {
-    httpOnly: true, // JS 讀不到
-    secure: true, // HTTPS 才傳 本地測試時 localhost 是不會被阻擋
-    sameSite: "none", // 防 CSRF，lax 允許 GET 時傳送 credentials 但是 POST 不允許，因此對於 login 我們需要設為 none
-  });
-  return res.json(payload);
-});
-
 app.post("/logout", authMiddleware, async (req, res) => {
   res.clearCookie("access_token", {
     httpOnly: true, // JS 讀不到

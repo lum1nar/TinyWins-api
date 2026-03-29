@@ -1,16 +1,13 @@
 import bcrypt from "bcrypt";
-import type { NewPerson } from "../db/types.js";
+import type { NewPerson } from "@/db/types.js";
 import type { registerInput } from "./userSchema.ts";
 import * as userRepository from "./userRepository.js";
+import { db } from "@/db/database.js";
 
-export const registerUser = async (person: registerInput) => {
-  const password_hash = await bcrypt.hash(person.password, 10);
+export async function getUsers() {
+  return await userRepository.getUsers();
+}
 
-  const newPerson: NewPerson = {
-    username: person.name,
-    email: person.email,
-    password_hash: password_hash,
-  };
-
-  return await userRepository.createPerson(newPerson);
-};
+export async function getUserByEmail(email: string) {
+  return await userRepository.getUserByEmail(email);
+}
