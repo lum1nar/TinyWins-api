@@ -18,7 +18,7 @@ export function errorHanlder(
   res: Response,
   next: NextFunction,
 ) {
-  logger.info("Hit Error Handler");
+  // logger.info("Hit Error Handler");
   if (error instanceof DatabaseError) {
     logger.error(
       {
@@ -41,7 +41,7 @@ export function errorHanlder(
   }
 
   if (error instanceof HttpError) {
-    return res.status(error.status).json({ message: error.status });
+    return res.status(error.status).json({ message: error.message });
   }
 
   logger.info(Object.getPrototypeOf(error));

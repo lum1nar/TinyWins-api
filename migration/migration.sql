@@ -6,3 +6,6 @@ CREATE TABLE person (
     created_at timestamp DEFAULT Now()
 );
 
+ALTER TABLE person
+    ADD CONSTRAINT person_email_unique UNIQUE (email);
+

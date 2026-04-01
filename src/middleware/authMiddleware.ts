@@ -1,0 +1,16 @@
+import { env } from "@/config.js";
+import type { NextFunction, Request, Response } from "express";
+import jwt from "jsonwebtoken";
+
+export const authMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const token = req.cookies.access_token;
+  if (!token) return res.sendStatus(401);
+  if (!env.JWT_SECRET) throw new Error("JWT_SECRET is not set");
+  const payload = jwt.verify(token, env.JWT_SECRET);
+  res.user = payload;
+  next();
+};
