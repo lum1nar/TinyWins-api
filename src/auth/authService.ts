@@ -5,7 +5,7 @@ import bcrypt from "bcrypt";
 import type { LoginInput, RegisterInput } from "./authSchema.js";
 import jwt from "jsonwebtoken";
 import { HttpError } from "@/middleware/errorHandler.js";
-import { env } from "@/config.js";
+import { env } from "@/env.js";
 
 export const registerUser = async (data: RegisterInput) => {
   const password_hash = await bcrypt.hash(data.password, 10);

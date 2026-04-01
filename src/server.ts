@@ -1,4 +1,4 @@
-import "./config.js";
+import "./env.js";
 import express from "express";
 import userRoute from "./user/index.js";
 import authRoute from "./auth/index.js";
