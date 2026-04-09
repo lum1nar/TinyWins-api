@@ -1,10 +1,6 @@
-import type { Person } from "@/db/types.js";
 import { loginSchema, registerSchema } from "@/auth/authSchema.js";
 import * as authService from "@/auth/authService.js";
-import type { NextFunction, Request, Response } from "express";
-import * as z from "zod";
-import { logger } from "@/utils/logger.js";
-import * as userService from "@/user/userService.js";
+import type { Request, Response } from "express";
 
 export async function registerUser(req: Request, res: Response) {
   const data = registerSchema.parse(req.body);

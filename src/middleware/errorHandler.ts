@@ -40,12 +40,15 @@ export function errorHanlder(
     return res.status(400).json({ message: z.treeifyError(error) });
   }
 
+  const err = error instanceof Error ? error : new Error(JSON.stringify(error));
+
   if (error instanceof HttpError) {
     return res.status(error.status).json({ message: error.message });
   }
 
   logger.info(Object.getPrototypeOf(error));
 
-  logger.error({ error }, "Unhandled error");
+  logger.error({ message: err.message, stack: err.stack }, "Unhandled error");
+
   return res.status(500).json({ message: "Internal Server Error" });
 }

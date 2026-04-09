@@ -9,7 +9,7 @@ import type {
 
 export type Database = {
   person: personTable;
-  // todo: todoTable;
+  todo: todoTable;
 };
 
 export type personTable = {
@@ -20,11 +20,19 @@ export type personTable = {
   created_at: ColumnType<Date, string | undefined, never>;
 };
 
-// export type todoTable = {
-//   id: Generated<number>;
-//   name: string;
-//   note: string;
-// };
+export type todoTable = {
+  id: Generated<number>;
+  title: string;
+  note: string;
+  created_at: ColumnType<Date, string | undefined, string | undefined>;
+  is_completed: ColumnType<boolean, boolean | undefined, boolean | undefined>;
+  person_id: number;
+};
+
 export type Person = Selectable<personTable>;
 export type NewPerson = Insertable<personTable>;
 export type PersonUpdate = Updateable<personTable>;
+
+export type Todo = Selectable<todoTable>;
+export type NewTodo = Insertable<todoTable>;
+export type TodoUpdate = Updateable<todoTable>;

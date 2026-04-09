@@ -1,8 +1,8 @@
 import { Router } from "express";
-import * as userHandlers from "./userHandler.js";
+import * as personHandlers from "./userHandler.js";
 
 const router = Router();
 
-router.get("/", userHandlers.getUsers);
+router.get("/", personHandlers.getAllUsers);
 
 export default router;

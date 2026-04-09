@@ -1,7 +1,7 @@
 import type { NewPerson } from "@/db/types.js";
 import { db } from "../db/database.js";
 
-export async function createPerson(person: NewPerson) {
+export async function insertPerson(person: NewPerson) {
   return await db
     .insertInto("person")
     .values(person)
@@ -9,7 +9,7 @@ export async function createPerson(person: NewPerson) {
     .executeTakeFirstOrThrow();
 }
 
-export async function getUserByEmail(email: string) {
+export async function selectPersonByEmail(email: string) {
   return await db
     .selectFrom("person")
     .where("email", "=", email)
@@ -17,6 +17,6 @@ export async function getUserByEmail(email: string) {
     .executeTakeFirst();
 }
 
-export async function getUsers() {
+export async function selectAllPeople() {
   return await db.selectFrom("person").selectAll().execute();
 }

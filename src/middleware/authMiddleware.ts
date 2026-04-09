@@ -12,6 +12,6 @@ export const authMiddleware = (
   if (!token) return res.sendStatus(401);
   if (!env.JWT_SECRET) throw new Error("JWT_SECRET is not set");
   const payload = jwt.verify(token, env.JWT_SECRET);
-  req.user = payload as AuthPayload;
+  req.person = payload as AuthPayload;
   next();
 };

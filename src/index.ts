@@ -2,15 +2,7 @@ import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import "dotenv/config";
-import pool from "./db.js";
-import bcrypt from "bcrypt";
-import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
-import type { UserJwtPayload } from "./types/user.js";
-// import { PrismaClient } from "./generated/prisma/client.ts";
-//
-// const prisma = new PrismaClient();
-//
 
 const app = express();
 app.use(
@@ -22,31 +14,10 @@ app.use(
     credentials: true,
   }),
 );
-// Allow CORS for specific origin
-
-app.use(express.json());
-// need this to read req.body
-app.use(cookieParser());
-// need cookeParser to read cookie from request
-
-const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.cookies.access_token;
-  if (!token) return res.sendStatus(401);
-
-  try {
-    // This make sure JWT_SECRENT is a string rather than undefined
-    if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET not set");
-    const payload = jwt.verify(token, process.env.JWT_SECRET) as UserJwtPayload;
-    req.user = payload;
-    next();
-  } catch {
-    return res.sendStatus(401);
-  }
-};
 
 app.get("/todos", authMiddleware, async (req, res) => {
   try {
-    const user_id = req.user.id;
+    const user_id = req.person.id;
     const result = await pool.query("SELECT * FROM todos WHERE user_id = $1", [
       user_id,
     ]);
@@ -56,9 +27,10 @@ app.get("/todos", authMiddleware, async (req, res) => {
     return res.status(500).json({ message: "讀取資料失敗" });
   }
 });
+
 app.post("/todos", authMiddleware, async (req, res) => {
   const { title, notes } = req.body;
-  const user_id = req.user.id;
+  const user_id = req.person.id;
 
   if (!title || title.trim() === "") {
     return res.status(400).json({ message: "請輸入待辦事項！" });
@@ -120,7 +92,7 @@ app.patch("/todos/:id/toggle", authMiddleware, async (req, res) => {
 
 app.post("/subtodos", authMiddleware, async (req, res) => {
   const { title, main_todo_id } = req.body;
-  const user_id = req.user.id;
+  const user_id = req.person.id;
 
   if (!title || title.trim() === "") {
     return res.status(400).json({ message: "請輸入待辦事項！" });
@@ -139,7 +111,7 @@ app.post("/subtodos", authMiddleware, async (req, res) => {
 
 app.get("/subtodos", authMiddleware, async (req, res) => {
   try {
-    const user_id = req.user.id;
+    const user_id = req.person.id;
     const result = await pool.query(
       "SELECT * FROM subtodos WHERE user_id = $1",
       [user_id],
@@ -163,7 +135,7 @@ app.post("/logout", authMiddleware, async (req, res) => {
 app.get("/me", authMiddleware, (req, res) => {
   return res.status(200).json({
     message: "你已登入",
-    user: req.user,
+    user: req.person,
   });
 });
 

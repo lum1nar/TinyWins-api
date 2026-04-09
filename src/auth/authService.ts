@@ -11,16 +11,16 @@ export const registerUser = async (data: RegisterInput) => {
   const password_hash = await bcrypt.hash(data.password, 10);
 
   const newPerson: NewPerson = {
-    username: data.name,
+    username: data.username,
     email: data.email,
     password_hash: password_hash,
   };
 
-  return await userRepository.createPerson(newPerson);
+  return await userRepository.insertPerson(newPerson);
 };
 
 export const login = async function (data: LoginInput) {
-  const user = await userService.getUserByEmail(data.email);
+  const user = await userService.getPersonByEmail(data.email);
 
   if (!user) {
     throw new HttpError(401, "Invalid Credentails");
