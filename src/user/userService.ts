@@ -1,12 +1,12 @@
 import bcrypt from "bcrypt";
+import { db } from "@/db/database.js";
 import type { NewPerson } from "@/db/types.js";
 import * as userRepository from "./userRepository.js";
-import { db } from "@/db/database.js";
 
 export async function getAllUsers() {
-  return await userRepository.selectAllPeople();
+	return await userRepository.selectAllPeople();
 }
 
 export async function getPersonByEmail(email: string) {
-  return await userRepository.selectPersonByEmail(email);
+	return await userRepository.selectPersonByEmail(email);
 }
