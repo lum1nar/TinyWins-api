@@ -11,3 +11,11 @@ export async function createTodo(
 
 	return await userRepository.insertTodo(newTodo);
 }
+
+export async function getTodosByUserId(userId: number) {
+	return await userRepository.getTodosByUserId(userId);
+}
+
+export async function deleteTodoById(userId: number, id: number) {
+	return await userRepository.deleteTodoById(userId, id);
+}
